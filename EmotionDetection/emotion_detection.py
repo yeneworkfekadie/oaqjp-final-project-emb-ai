@@ -8,7 +8,7 @@ def emotion_detector(text_to_analyze):
     
     response = requests.post(url, headers=headers, json=input_json)
     
-    # Handle blank input (status code 400)
+    # Handle blank input (status code 400) or any parsing error
     if response.status_code == 400:
         return {
             'anger': None,
@@ -19,23 +19,32 @@ def emotion_detector(text_to_analyze):
             'dominant_emotion': None
         }
     
-    response_data = json.loads(response.text)
-    
-    emotions = response_data['emotionPredictions'][0]['emotion']
-    anger = emotions['anger']
-    disgust = emotions['disgust']
-    fear = emotions['fear']
-    joy = emotions['joy']
-    sadness = emotions['sadness']
-    
-    emotion_scores = {'anger': anger, 'disgust': disgust, 'fear': fear, 'joy': joy, 'sadness': sadness}
-    dominant_emotion = max(emotion_scores, key=emotion_scores.get)
-    
-    return {
-        'anger': anger,
-        'disgust': disgust,
-        'fear': fear,
-        'joy': joy,
-        'sadness': sadness,
-        'dominant_emotion': dominant_emotion
-    }
+    try:
+        response_data = json.loads(response.text)
+        emotions = response_data['emotionPredictions'][0]['emotion']
+        anger = emotions['anger']
+        disgust = emotions['disgust']
+        fear = emotions['fear']
+        joy = emotions['joy']
+        sadness = emotions['sadness']
+        
+        emotion_scores = {'anger': anger, 'disgust': disgust, 'fear': fear, 'joy': joy, 'sadness': sadness}
+        dominant_emotion = max(emotion_scores, key=emotion_scores.get)
+        
+        return {
+            'anger': anger,
+            'disgust': disgust,
+            'fear': fear,
+            'joy': joy,
+            'sadness': sadness,
+            'dominant_emotion': dominant_emotion
+        }
+    except (KeyError, IndexError, json.JSONDecodeError):
+        return {
+            'anger': None,
+            'disgust': None,
+            'fear': None,
+            'joy': None,
+            'sadness': None,
+            'dominant_emotion': None
+        }
